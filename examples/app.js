@@ -21,6 +21,8 @@ let formTemplate = {
 injectTapEventPlugin();
 render(
     <MuiThemeProvider>
-        <SemiForm formTemplate={formTemplate} onSubmit={(data)=>{console.log(data);}} />
+        {
+            //<SemiForm formTemplate={formTemplate} onSubmit={(data)=>{console.log(data);}} />
+        }
     </MuiThemeProvider>, document.getElementById('app')
 );

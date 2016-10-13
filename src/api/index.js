@@ -5,7 +5,8 @@ require('isomorphic-fetch');
 function baseUrl(endpoint) {
     let endpointStr = endpoint ? (endpoint.substr(0, 1) == '/' ? endpoint : '/' + endpoint) : '';
     let host = window.location.host;
-    let devProjectName = 'mtpcpos';
+    // let devProjectName = 'mtpcpos';
+    let devProjectName = 'circulate';
 
     // dev
     if (process.env.NODE_ENV == 'development') {
