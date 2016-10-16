@@ -1,5 +1,6 @@
 import React, {PropTypes, Component} from 'react';
 import injectTapEventPlugin from 'react-tap-event-plugin';
+import getMuiTheme from 'material-ui/styles/getMuiTheme'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 // import {ajax, getAll} from '../api/ApiCall';
 // import helper from '../libs/helper';
@@ -11,8 +12,8 @@ class SemiThemeProvider extends Component {
   constructor(props, context) {
     super(props, context);
     // todo: not hard-code serverUrl and access-token
-    this.serverUrl = `http://localhost/${devProjectName}/public/api/`;
-    this.access_token = 'todo';
+    // this.serverUrl = `http://localhost/${devProjectName}/public/api/`;
+    // this.access_token = 'todo';
   }
 
   // getChildContext() {
@@ -39,7 +40,7 @@ class SemiThemeProvider extends Component {
   render() {
     // console.log('render: app', this.props.user);
     return (
-      <MuiThemeProvider >
+      <MuiThemeProvider muiTheme={getMuiTheme()}>
         <div>
           {this.props.children}
         </div>

@@ -36,8 +36,9 @@
     "formsy-react": "^0.18.1",
     "react-flexbox-grid": "^0.10.2",
     "react-tap-event-plugin": "^1.0.0",
-    "es6-promise": "^3.2.1",
-    "isomorphic-fetch": "^2.2.1"
+    "es6-promise": "^4.0.5",
+    "isomorphic-fetch": "^2.2.1",
+    "validator": "^6.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.16.0",
@@ -56,6 +57,18 @@
     "eslint-plugin-react": "^6.3.0",
     "style-loader": "^0.13.1",
     "webpack": "^1.13.2",
-    "webpack-dev-server": "^1.16.1"
+    "webpack-dev-server": "^1.16.1",
+
+    "material-ui": "^0.16.0",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.1",
+    "jquery": "^3.1.1",
+    "flexboxgrid": "^6.3.1",
+    "formsy-react": "^0.18.1",
+    "react-flexbox-grid": "^0.10.2",
+    "react-tap-event-plugin": "^1.0.0",
+    "es6-promise": "^3.2.1",
+    "isomorphic-fetch": "^2.2.1",
+    "validator": "^6.0.0"
   }
 }

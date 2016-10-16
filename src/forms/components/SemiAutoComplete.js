@@ -5,7 +5,6 @@ import AutoComplete from 'material-ui/AutoComplete';
 import ErrorMessage from '../../forms/ErrorMessage';
 import IconButton from 'material-ui/IconButton/IconButton';
 import ClearIcon from 'material-ui/svg-icons/content/clear';
-import validator from 'validator';
 
 class SemiAutoComplete extends SemiInputComponent{
     state = {
