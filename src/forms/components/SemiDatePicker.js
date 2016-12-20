@@ -8,6 +8,13 @@ import IconButton from 'material-ui/IconButton/IconButton';
 import ClearIcon from 'material-ui/svg-icons/content/clear';
 
 class SemiDatePicker extends SemiInputComponent{
+    shouldComponentUpdate(nextProps) {
+        if(this.checkUpdateValue != nextProps.getValue()) {
+            this.checkUpdateValue = nextProps.getValue();
+            return true;
+        }
+        return false;
+    }
     componentDidMount() {
         const { defaultDate } = this.props;
         const value = this.props.getValue();
@@ -46,7 +53,7 @@ class SemiDatePicker extends SemiInputComponent{
         // --- Icon Buttons
         let clearIcon = null;
         let minusWidth = 0;
-        if (this.props.showClearIcon && currentValue && currentValue.length !== 0 && !this.props.disabled) {
+        if (this.props.showClearButton && currentValue && currentValue.length !== 0 && !this.props.disabled) {
             clearIcon = (
                 <IconButton className="btn-icon" onTouchTap={this.handleClear.bind(this)}>
                     <ClearIcon/>

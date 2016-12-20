@@ -17,11 +17,12 @@ class Alert extends Component {
     }
 
     close(){
+        if(this.state.callback) this.state.callback();
         this.setState({ open: false });
     }
 
-    open([description, title, type]){
-        this.setState({ open: true, description, title, type});
+    open([description, title, type, callback]){
+        this.setState({ open: true, description, title, type, callback});
     }
 
     render() {

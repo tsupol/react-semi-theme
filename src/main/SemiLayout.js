@@ -9,11 +9,9 @@ import {NavigationMenu, ActionAccountBox, ActionPowerSettingsNew, NavigationMore
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import Drawer from 'material-ui/Drawer';
 import RaisedButton from 'material-ui/RaisedButton';
-import MainMenu from './MainMenu';
-import Confirm from './widgets/Confirm';
-import Alert from './widgets/Alert';
-
-// import GeminiScrollbar from 'react-gemini-scrollbar';
+import SideMenu from '../widgets/SideMenu';
+import Confirm from '../widgets/Confirm';
+import Alert from '../widgets/Alert';
 
 class SemiLayout extends Component {
     constructor(props, context) {
@@ -62,16 +60,34 @@ class SemiLayout extends Component {
     render() {
         // console.log('render: layout', this.props.user);
         let showMainMenu = this.state.showMainMenu;
+        let settings = this.props.settings;
+
+        let toolsMenu = null;
+        // todo: dynamically add tools menu item and replicate MUI approach
+        // console.log('settings', settings);
+        // if(settings.hasAuthentication) { // wronng
+        //     toolsMenu =
+        //         <IconMenu
+        //             iconButtonElement={<IconButton style={{width:56, height:56}}><NavigationMoreVert /></IconButton>}
+        //             targetOrigin={{horizontal: 'right', vertical: 'top'}}
+        //             anchorOrigin={{horizontal: 'right', vertical: 'top'}}>
+        //             <MenuItem
+        //                 primaryText="Sign out"
+        //                 leftIcon={<ActionPowerSettingsNew />}
+        //                 onTouchTap={this.logout}/>
+        //         </IconMenu>;
+        // }
+
         return (
             <div id="layout" className={`${showMainMenu ? '' : 'no-menu'}`}>
                 <Confirm ref="confirm" />
                 <Alert ref="alert" />
                 {
                     // todo: main menu
-                    // <Drawer open={showMainMenu} className={`menu-wrapper ${showMainMenu ? '' : 'minimize'}`}>
-                    //     <Toolbar className="side-nav-bar"><ToolbarTitle text="Navigation"/></Toolbar>
-                    //     <MainMenu location={this.props.location} />
-                    // </Drawer>
+                    <Drawer open={showMainMenu} className={`menu-wrapper ${showMainMenu ? '' : 'minimize'}`}>
+                        <Toolbar className="side-nav-bar"><ToolbarTitle text="Navigation"/></Toolbar>
+                        <SideMenu location={this.props.location} menu={this.props.mainMenu} />
+                    </Drawer>
                 }
                 <Paper className="top-nav-wrap" zDepth={1}>
                     <Toolbar className="top-nav-bar">
@@ -80,23 +96,8 @@ class SemiLayout extends Component {
                             <IconButton iconClassName="muidocs-icon-custom-github" />
                         </ToolbarGroup>
                         <ToolbarGroup>
-                            <ToolbarTitle text="Schedule"/>
-                            <ToolbarSeparator />
-                            <ToolbarTitle text={this.props.user.branch.name} style={{marginLeft: 32}} />
-                            {/*<RaisedButton label="Something" primary={true}/>*/}
-                            <IconMenu
-                                iconButtonElement={<IconButton style={{width:56, height:56}}><NavigationMoreVert /></IconButton>}
-                                targetOrigin={{horizontal: 'right', vertical: 'top'}}
-                                anchorOrigin={{horizontal: 'right', vertical: 'top'}}>
-                                <MenuItem
-                                    primaryText="Profile"
-                                    leftIcon={<ActionAccountBox />}
-                                    onTouchTap={this.linkTo.bind(null, '/profile')}/>
-                                <MenuItem
-                                    primaryText="Sign out"
-                                    leftIcon={<ActionPowerSettingsNew />}
-                                    onTouchTap={this.logout}/>
-                            </IconMenu>
+                            <ToolbarTitle text={settings.toolbarTitle} />
+                            {toolsMenu}
                         </ToolbarGroup>
                     </Toolbar>
                 </Paper>
@@ -109,7 +110,6 @@ class SemiLayout extends Component {
 }
 
 SemiLayout.propTypes = {
-    user: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired,
     appBarTitle: PropTypes.string.isRequired,
     children: PropTypes.object.isRequired

@@ -8,13 +8,6 @@ import Slider from 'material-ui/Slider';
 import Chip from 'material-ui/Chip';
 
 class SemiSliderInput extends SemiInputComponent{
-    handleSlide(event, value){
-        let nextValue = value;
-        if(value==0&&this.props.required) nextValue = '';
-        this.props.setValue(nextValue);
-        this.props.onChange&&this.props.onChange(value, event);
-    }
-
     shouldComponentUpdate(nextProps) {
         if(this.checkUpdateValue != nextProps.getValue()) {
             this.checkUpdateValue = nextProps.getValue();
@@ -22,9 +15,14 @@ class SemiSliderInput extends SemiInputComponent{
         }
         return false;
     }
-
+    handleSlide(event, value){
+        let nextValue = value;
+        if(value==0&&this.props.required) nextValue = '';
+        this.props.setValue(nextValue);
+        this.props.onChange&&this.props.onChange(value, event);
+    }
     render() {
-        // console.log('render: Slider', this.props.name);
+        //console.log('render: SemiTextField', this.props.validations);
         let {
             getErrorMessage,
             getErrorMessages,

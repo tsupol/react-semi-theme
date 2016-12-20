@@ -1,11 +1,10 @@
-// export Hello from './greetings/Hello';
-export Hola from './greetings/Hola'; // test
+// Greetings are for test only, don't mind them
+export Hola from './greetings/Hola';
 
 // Main
 export SemiThemeProvider from './main/SemiThemeProvider';
-// Forms
-export SemiForm from './forms/SemiForm';
+export SemiLayout from './main/SemiLayout';
 
-// Widgets
-export Loading from './widgets/Loading';
-export Alert from './widgets/Alert';
+// Helpers
+export helper from './libs/helper';
+export semiPrototypes from './libs/semiPrototypes';

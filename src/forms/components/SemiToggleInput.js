@@ -5,12 +5,18 @@ import ErrorMessage from '../../forms/ErrorMessage';
 import Toggle from 'material-ui/Toggle';
 
 class SemiToggleInput extends SemiInputComponent{
+    shouldComponentUpdate(nextProps) {
+        if(this.checkUpdateValue != nextProps.getValue()) {
+            this.checkUpdateValue = nextProps.getValue();
+            return true;
+        }
+        return false;
+    }
     controlledValue = (props = this.props) => {
         this.toggleValue = props.value || props.defaultValue;
         if(!this.toggleValue) this.toggleValue = false;
         return this.toggleValue;
     };
-    
     handleToggle(event, value){
         // original
         // let nextValue = value;
@@ -27,7 +33,7 @@ class SemiToggleInput extends SemiInputComponent{
         this.props.onChange&&this.props.onChange(this.toggleValue, event);
     }
     render() {
-        // console.log('render: Toggle', this.props.name);
+        //console.log('render: SemiTextField', this.props.validations);
         let {
             getErrorMessage,
             getErrorMessages,

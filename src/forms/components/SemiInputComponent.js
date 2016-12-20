@@ -3,7 +3,6 @@ import React, { PropTypes, Component } from 'react';
 class SemiInputComponent extends Component{
     constructor(props) {
         super(props);
-        this.checkUpdateValue = null;
     }
 
     componentWillMount() {
@@ -21,7 +20,7 @@ class SemiInputComponent extends Component{
 
     handleChange = (event) => {
         this.props.setValue(event.currentTarget.value);
-        if (this.props.onChange) this.props.onChange(event);
+        if (this.props.onChange) this.props.onChange(event.currentTarget.value, event);
     };
 
     reset = () => {
@@ -30,11 +29,12 @@ class SemiInputComponent extends Component{
 
     handleClear = () => {
         this.props.setValue('');
+        this.props.onChange&&this.props.onChange('');
     };
 
     render() {
         return (
-            <div />
+            <div></div>
         );
     }
 }

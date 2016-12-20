@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React, {PropTypes} from 'react';
 import {HOC} from 'formsy-react';
 import SemiInputComponent from './SemiInputComponent';
 import TextField from 'material-ui/TextField';
@@ -7,181 +7,266 @@ import Checkbox from 'material-ui/Checkbox';
 import {List, ListItem} from 'material-ui/List';
 import ErrorMessage from '../../forms/ErrorMessage';
 import IconButton from 'material-ui/IconButton/IconButton';
-import ClearIcon from 'material-ui/svg-icons/content/clear';
+import {ContentClear, ActionSearch} from 'material-ui/svg-icons';
+import helper from '../../libs/helper';
+import {Popover, PopoverAnimationVertical} from 'material-ui/Popover';
 
-class SemiSelectField extends SemiInputComponent{
-    controlledValue = (props = this.props) => {
-        let value = (props.value || props.defaultValue);
-        let valueIsObject = typeof value=='object';
-        let defaultValue = props.multiple ? (valueIsObject ? value.map((i)=>parseInt(i,10)) : (value ? [parseInt(value,10)] : props.required ? '' : [])) : (valueIsObject ? parseInt(value[0],10) : (value ? parseInt(value,10) : props.required ? '' : null));
-        return defaultValue;
-    };
-    handleCheck(item, index){
-        let currentValue = this.props.getValue();
-        if(!currentValue) currentValue = this.props.multiple ? [] : null;
-        if(this.props.multiple){
-            const index = currentValue.map(v=>parseInt(v,10)).indexOf(parseInt(item.props.value,10));
-            if(index < 0) {
-                currentValue.push(parseInt(item.props.value,10));
-                this.props.onChange&&this.props.onChange(currentValue, index);
-            }else{
-                currentValue.splice(index, 1);
-                this.props.onChange&&this.props.onChange(currentValue, index);
-            }
-        }else{
-            currentValue = parseInt(item.props.value);
-            this.refs.dropdown.handleRequestCloseMenu();
-            this.props.onChange&&this.props.onChange(currentValue, index);
-        }
-        if(typeof currentValue=='object'&&this.props.required&&currentValue.length==0||currentValue==null) currentValue='';
-        this.props.setValue(currentValue);
-    }
-    render() {
-        //console.log('render: SemiTextField', this.props.validations);
-        let {
-            getErrorMessage,
-            getErrorMessages,
-            getValue,
-            hasValue,
-            isFormDisabled,
-            isFormSubmitted,
-            isPristine,
-            setValue,
-            isRequired,
-            isValid,
-            isValidValue,
-            resetValue,
-            showError,
-            showRequired,
+class SemiSelectField extends SemiInputComponent {
+	// controlledValue = (props = this.props) => {
+	//     let value = (props.value || props.defaultValue);
+	//     let valueIsObject = typeof value == 'object';
+	//     let defaultValue = props.multiple ? (valueIsObject ? value.map((i)=>parseInt(i, 10)) : (value ? [parseInt(value, 10)] : props.required ? '' : [])) : (valueIsObject ? parseInt(value[0], 10) : (value ? parseInt(value, 10) : props.required ? '' : null));
+	//     return defaultValue;
+	// };
 
-            autoWidth,
-            children,
-            style,
-            underlineDisabledStyle,
-            underlineFocusStyle,
-            underlineStyle,
-            errorStyle,
-            selectFieldRoot,
-            disabled,
-            floatingLabelText,
-            floatingLabelFixed,
-            floatingLabelStyle,
-            hintStyle,
-            hintText,
-            fullWidth,
-            errorText,
-            onFocus,
-            onBlur,
-            onChange,
+	constructor(props, context) {
+		super(props, context);
+		this.state = {
+			open: false,
+			anchorEl: null,
+			filter: '',
+			selectWidth: 250
+		};
+		// For `shouldComponentUpdate`
+		this.afterClick = false;
+	}
 
-            value,
-            options,
-            multiple,
-            type,
-            validations,
-            validationErrors,
-            ...rest
-        } = this.props;
+	shouldComponentUpdate(nextProps) {
+		// console.log('this.checkUpdateValue', this.checkUpdateValue, nextProps.getValue());
+		// todo: fix equal value when selected and click dropdown
+		if(this.checkUpdateValue != nextProps.getValue() || this.afterClick) {
+			this.checkUpdateValue = nextProps.getValue();
+			this.afterClick = false;
+			return true;
+		}
+		return false;
+		// return true;
+	}
 
-        let currentValue = this.props.getValue();
+	handleCheck(item, index) {
+		let currentValue = this.props.getValue();
+		if (!currentValue) currentValue = this.props.multiple ? [] : null;
+		if (this.props.multiple) {
+			const index = helper.indexOf(currentValue, item.props.value);
+			if (index >= 0) {
+				currentValue.splice(index, 1);
+				this.props.onChange && this.props.onChange(currentValue, index);
+			} else {
+				currentValue.push(item.props.value.toString());
+				this.props.onChange && this.props.onChange(currentValue, index);
+			}
+		} else {
+			currentValue = item.props.value.toString();
+			this.handleRequestCloseMenu();
+			this.props.onChange && this.props.onChange(currentValue, index);
+		}
+		if (typeof currentValue == 'object' && this.props.required && currentValue.length == 0 || currentValue == null) currentValue = '';
+		this.afterClick = true;
+		this.props.setValue(currentValue);
+	}
 
-        // --- Icon Buttons
-        let clearIcon = null;
-        let minusWidth = 0;
-        if (currentValue && currentValue.length !== 0 && !this.props.disabled) {
-            clearIcon = (
-                <IconButton className="btn-icon" onTouchTap={this.handleClear.bind(this)}>
-                    <ClearIcon/>
-                </IconButton>
-            );
-            minusWidth += 36;
-        }
-        let items = options ? [] : null;
-        if(typeof options === 'object') { // object or array only
-            for(let i in options) {
-                let id = options[i].id ? parseInt(options[i].id) : parseInt(i);
-                items.push(<ListItem value={id} key={id} primaryText={options[i].name}/>);
-            }
-        }
-        let labels = [];
+	handleTouchTap = (event) => {
+		// This prevents ghost click.
+		event.preventDefault();
+		this.afterClick = true;
+		this.calculatePopoverWidth(event);
+		this.setState({
+			open: true,
+			anchorEl: event.currentTarget
+		});
+	};
 
-        if(!children&&items) children = items;
-        if(!currentValue) currentValue = multiple ? [] : null;
-        if(floatingLabelFixed==undefined) floatingLabelFixed = true;
+	handleRequestCloseMenu = () => {
+		this.afterClick = true;
+		this.setState({
+			open: false
+		});
+	};
 
-        let valueIsObject = typeof currentValue=='object'&&currentValue!==null;
+	handleFilterChange = (event) => {
+		let value = event.target.value;
+		this.afterClick = true;
+		this.setState({
+			filter: value
+		});
+	};
 
+	calculatePopoverWidth = (event) => {
+		let width = window.getComputedStyle(event.currentTarget).width;
+		this.setState({selectWidth: parseInt(width)});
+	};
 
+	render() {
+		// console.log('render: SemiTextField', this.props.validations);
+		let {
+			// !!! Do not delete: preserver for references
+			// getErrorMessage,
+			// getErrorMessages,
+			// getValue,
+			// hasValue,
+			// isFormDisabled,
+			// isFormSubmitted,
+			// isPristine,
+			// setValue,
+			// isRequired,
+			// isValid,
+			// isValidValue,
+			// resetValue,
+			// showError,
+			// showRequired,
+			//
+			// autoWidth,
+			// style,
+			// underlineDisabledStyle,
+			// underlineFocusStyle,
+			// underlineStyle,
+			// errorStyle,
+			// selectFieldRoot,
+			// disabled,
+			// floatingLabelText,
+			// floatingLabelFixed,
+			// floatingLabelStyle,
+			// hintStyle,
+			// hintText,
+			// fullWidth,
+			// errorText,
+			// onFocus,
+			// onBlur,
+			// onChange,
+			//
+			// value,
+			// type,
+			// validations,
+			// validationErrors,
+			options, // options items
+			children,
+			...rest
+		} = this.props;
+		
+		let settings = Object.assign({}, {
+			// Text Input
+			floatingLabelFixed: false,
+			// Custom
+			multiple: false,
+			showFilter: true,
+			showFilterMinimum: 7
+		}, rest, {
+			// Override
+			eventRender: this.eventRender,
+			dayClick: this.dayClick,
+			loading: this.loading
+		});
 
-        for (let i in children) {
-            /*
-            if (valueIsObject ? currentValue.indexOf(children[i].value) >= 0 : currentValue==children[i].value) {
-                labels.push(children[i].props.primaryText);
-            }
-            */
-            if (valueIsObject){
-                if(currentValue.map(v=>parseInt(v,10)).indexOf(parseInt(children[i].props.value, 10)) >= 0){
-                    labels.push(children[i].props.primaryText);
-                }
-            }else{
-                if(parseInt(currentValue,10)==parseInt(children[i].props.value,10)){
-                    labels.push(children[i].props.primaryText);
-                }
-            }
-        }
+		let currentValue = this.props.getValue();
 
-        let checkboxItems = children ? children.map((item, i) => {
-            let checkbox = <Checkbox
-                checked={(valueIsObject ? currentValue.map(v=>parseInt(v,10)).indexOf(parseInt(item.props.value,10)) >= 0 : parseInt(currentValue,10)==parseInt(item.props.value,10))}
-                onCheck={this.handleCheck.bind(this, item, i)} />;
-            return React.cloneElement(item, {
-                leftCheckbox: checkbox
-            });
-        }) : null;
+		// --- Icon Buttons
+		let clearIcon = null;
+		let minusWidth = 0;
+		if (currentValue && currentValue.length !== 0 && !this.props.disabled) {
+			clearIcon = (
+				<ContentClear className="btn-clear" onTouchTap={this.handleClear.bind(this)} />
+			);
+			minusWidth += 20;
+		}
+		let items = options ? [] : null;
+		if (typeof options === 'object') { // object or array only
+			for (let i in options) {
+				let id = options[i].id ? options[i].id.toString() : i.toString();
+				items.push(<ListItem className="ss-option" value={id} key={id} primaryText={options[i].name}/>);
+			}
+		}
+		let selectedItems = [];
 
-        let width = (this.props.fullWidth ? `calc(100% - ${minusWidth}px)` : `auto`);
-        let textFieldStyle = Object.assign({},style,{width});
+		if (!children && items) children = items;
+		if (!currentValue) currentValue = settings.multiple ? [] : null;
 
-        return (
-            <div>
-                <TextField
-                    ref="input"
-                    style={textFieldStyle}
-                    floatingLabelText={floatingLabelText}
-                    floatingLabelFixed={floatingLabelFixed}
-                    floatingLabelStyle={floatingLabelStyle}
-                    hintStyle={hintStyle}
-                    hintText={(!hintText && !floatingLabelText) ? ' ' : hintText}
-                    fullWidth={fullWidth}
-                    errorText={errorText}
-                    underlineStyle={underlineStyle}
-                    errorStyle={errorStyle}
-                    onFocus={onFocus}
-                    onBlur={onBlur}
-                    underlineDisabledStyle={underlineDisabledStyle}
-                    underlineFocusStyle={underlineFocusStyle}
-                    >
-                    <div style={{width: "100%"}}>
-                        <div style={{position:"absolute", bottom: floatingLabelFixed ? '26px' : '12px', left:0, width: "100%", overflow:"hidden" }}>{labels.join(", ")}</div>
-                        <DropDownMenu
-                            ref="dropdown"
-                            disabled={disabled}
-                            style={{width:"100%"}}
-                            autoWidth={/*autoWidth*/false}
-                            iconStyle={{right: 0}}
-                            underlineStyle={{
-                                borderTop: 'none'
-                            }}
-                            {...rest}
-                            >
-                            {checkboxItems}
-                        </DropDownMenu>
-                    </div>
-                </TextField>
-                {clearIcon}
-            </div>
-        );
-    }
+		let valueIsObject = typeof currentValue == 'object' && currentValue !== null;
+
+		for (let i in children) {
+			/*
+			 if (valueIsObject ? currentValue.indexOf(children[i].value) >= 0 : currentValue==children[i].value) {
+			 labels.push(children[i].props.primaryText);
+			 }
+			 */
+			if (valueIsObject) {
+				if (helper.has(currentValue, children[i].props.value)) {
+					selectedItems.push(children[i].props.primaryText);
+				}
+			} else {
+				if (helper.equals(currentValue, children[i].props.value)) {
+					selectedItems.push(children[i].props.primaryText);
+				}
+			}
+		}
+
+		let checkboxItems = children ? children.filter((c)=> {
+			if (this.state.filter) {
+				let re = new RegExp(this.state.filter, 'gi');
+				return c.props.primaryText.match(re);
+			}
+			return true;
+		}).map((item, i) => {
+			let checkbox =
+				<Checkbox
+					checked={valueIsObject ? helper.has(currentValue, item.props.value) : helper.equals(currentValue, item.props.value)}
+					onCheck={this.handleCheck.bind(this, item, i)}/>;
+			return React.cloneElement(item, {leftCheckbox: checkbox});
+		}) : null;
+
+		let width = (this.props.fullWidth ? `calc(100% - ${minusWidth}px)` : `auto`);
+		let calculatedStyle = Object.assign({}, settings.style, {width});
+		let calculatedValue = selectedItems.join(", ");
+
+		return (
+			<div className="ss-wrap">
+				<Popover
+					ref="popOver"
+					className="ss-popover"
+					open={this.state.open}
+					anchorEl={this.state.anchorEl}
+					anchorOrigin={{horizontal: 'left', vertical: 'center'}}
+					targetOrigin={{horizontal: 'left', vertical: 'top'}}
+					onRequestClose={this.handleRequestCloseMenu}
+					style={{width: this.state.selectWidth, minWidth: 250, maxWidth: 400, overflowY: 'auto'}}
+					animation={PopoverAnimationVertical}
+					canAutoPosition={false}
+				>
+					{settings.showFilter && checkboxItems.length >= settings.showFilterMinimum ?
+						<div className="ss-search">
+							<ActionSearch className="ss-find-icon"/>
+							<input type="text" onChange={this.handleFilterChange}/>
+						</div>
+						: null}
+					<div className="ss-options-wrap">
+						{checkboxItems}
+					</div>
+				</Popover>
+				<TextField
+					className="ss-text"
+					ref="input"
+					style={calculatedStyle}
+					floatingLabelText={settings.floatingLabelText}
+					floatingLabelFixed={settings.floatingLabelFixed}
+					floatingLabelStyle={settings.floatingLabelStyle}
+					hintStyle={settings.hintStyle}
+					hintText={(!settings.hintText && !settings.floatingLabelText) ? ' ' : (selectedItems.length ? selectedItems.join(", ") : settings.hintText)}
+					fullWidth={settings.fullWidth}
+					errorText={settings.errorText}
+					underlineStyle={settings.underlineStyle}
+					errorStyle={settings.errorStyle}
+					onFocus={settings.onFocus}
+					onBlur={settings.onBlur}
+					underlineDisabledStyle={settings.underlineDisabledStyle}
+					underlineFocusStyle={settings.underlineFocusStyle}
+					value={calculatedValue}
+				/>
+				<div className="ss-label" style={{width: width}} onTouchTap={this.handleTouchTap}>
+					<div className="ss-arrow"></div>
+				</div>
+				{clearIcon}
+			</div>
+		);
+	}
 }
 
 export default HOC(SemiSelectField);

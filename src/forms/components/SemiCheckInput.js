@@ -1,42 +1,55 @@
 import React, {PropTypes} from 'react';
 import {HOC} from 'formsy-react';
 import SemiInputComponent from './SemiInputComponent';
-import TextField from 'material-ui/TextField';
-import DropDownMenu from 'material-ui/DropDownMenu';
 import Checkbox from 'material-ui/Checkbox';
 import {List, ListItem} from 'material-ui/List';
-import ErrorMessage from '../../forms/ErrorMessage';
 import IconButton from 'material-ui/IconButton/IconButton';
 import ClearIcon from 'material-ui/svg-icons/content/clear';
 import RadioButtonChecked from 'material-ui/svg-icons/toggle/radio-button-checked';
 import RadioButtonUnchecked from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import Avatar from 'material-ui/Avatar';
+import SemiTextField from './SemiTextField';
+import {Row, Col} from 'react-semi-theme/grid';
+import helper from '../../libs/helper'
 
 class SemiCheckInput extends SemiInputComponent {
+
+    shouldComponentUpdate(nextProps) {
+        let isEqual = false;
+        if(this.checkUpdateValue !== undefined) {
+            //isEqual = helper.isArrayEqual(this.checkUpdateValue, nextProps.getValue());
+            isEqual = this.checkUpdateValue == nextProps.getValue();
+        }
+        if(!isEqual) {
+            // Note: must clone array!
+            this.checkUpdateValue = (this.props.multiple || nextProps.multiple) ? nextProps.getValue().slice(0) : nextProps.getValue();
+            return true;
+        }
+        return false;
+    }
 
     controlledValue = (props = this.props) => {
         let value = (props.value || props.defaultValue);
         let valueIsObject = typeof value == 'object';
         // todo: Please do not use shorthand if for " COMPLEX " conditional statement. Always make code simple.
-        let defaultValue = props.multiple ? (valueIsObject ? value.map((i)=>parseInt(i, 10)) : (value ? [parseInt(value, 10)] : props.required ? '' : [])) : (valueIsObject ? parseInt(value[0], 10) : (value ? parseInt(value, 10) : props.required ? '' : null));
+        let defaultValue = props.multiple ? (valueIsObject ? value : (value ? [value] : props.required ? '' : [])) : (valueIsObject ? value[0] : (value ? value : props.required ? '' : null));
         return defaultValue;
     };
 
     handleCheck(item, index) {
         let currentValue = this.props.getValue();
-        let id = parseInt(item.id, 10);
+        //let id = parseInt(item.id, 10);
         if (!currentValue) currentValue = this.props.multiple ? [] : null;
         if (this.props.multiple) {
-            const index = currentValue.map(v=>parseInt(v, 10)).indexOf(id);
-            if (index < 0) {
-                currentValue.push(id);
+            const $index = currentValue.indexOf(item.id);
+            if ($index < 0) {
+                currentValue.push(item.id);
                 this.props.onCheck && this.props.onCheck(currentValue, index);
             } else {
-                currentValue.splice(index, 1);
+                currentValue.splice($index, 1);
                 this.props.onCheck && this.props.onCheck(currentValue, index);
             }
         } else {
-            currentValue = parseInt(id);
+            currentValue = item.id;
             this.props.onCheck && this.props.onCheck(currentValue);
         }
         if (typeof currentValue == 'object' && this.props.required && currentValue.length == 0 || currentValue == null) currentValue = '';
@@ -70,15 +83,20 @@ class SemiCheckInput extends SemiInputComponent {
             type,
             validations,
             validationErrors,
+            grid,
+            horizontal,
+            rightItem,
             ...rest
-        } = this.props;
+            } = this.props;
+
+
 
         let currentValue = this.props.getValue();
 
         // --- Icon Buttons
         let clearIcon = null;
         let minusWidth = 0;
-        if (currentValue && currentValue.length !== 0 && !this.props.disabled && this.props.showClear) {
+        if (currentValue && currentValue.length !== 0 && !this.props.disabled && this.props.showClearButton) {
             clearIcon = (
                 <IconButton className="btn-icon" onTouchTap={this.handleClear.bind(this)}>
                     <ClearIcon/>
@@ -97,12 +115,25 @@ class SemiCheckInput extends SemiInputComponent {
         if (typeof options === 'object') { // object or array only
             for (let i in options) {
                 let option = options[i];
-                let id = option.id ? parseInt(option.id) : parseInt(i);
+                let id = option.id || i.toString();
                 let color = option.color || null;
-                let checked = (valueIsObject ? currentValue.map(v=>parseInt(v, 10)).indexOf(id) !== -1 : parseInt(currentValue, 10) == id);
+                let checked = (valueIsObject ? currentValue.indexOf(id) !== -1 : currentValue == id);
                 let iconStyle = color ? {fill: color} : {};
                 let labelStyle = color ? {color: color} : {};
-                items.push(
+                let customStyle = Object.assign({
+                    marginTop: 2, marginBottom: 2
+                },option.style) ;
+                let belowInput = null;
+                
+                // todo: belowItem is temporary
+                if (option.belowInput && checked) {
+                    if(option.belowInput.type == 'text') {
+                        let {grid, hint, ...inputParams} = option.belowInput;
+                        belowInput = <SemiTextField fullWidth style={{width: '100%'}} hintText={hint} {...inputParams}/>;
+                    }
+                }
+                
+                let checkboxElem =
                     <Checkbox
                         key={i}
                         checkedIcon={multiple ? null : <RadioButtonChecked />}
@@ -112,17 +143,34 @@ class SemiCheckInput extends SemiInputComponent {
                         checked={checked}
                         iconStyle={iconStyle}
                         labelStyle={labelStyle}
-                    />);
-
+                        style={customStyle}
+                    />;
+                // todo: finish below item code
+                if(horizontal && belowInput) {
+                    items.push(
+                        <Col key={i} {...option.grid}>
+                            <Row>
+                                <Col noPadding xs="100%">{checkboxElem}</Col>
+                                <Col noPadding xs="100%">{belowInput}</Col>
+                            </Row>
+                        </Col>
+                    );
+                } else if(horizontal) {
+                    items.push(
+                        <Col key={i} {...option.grid}>
+                            {checkboxElem}
+                        </Col>
+                    );
+                } else {
+                    items.push(checkboxElem);
+                }
             }
         }
-
         let width = (this.props.fullWidth ? `calc(100% - ${minusWidth}px)` : `auto`);
-
         return (
             <div>
                 <div style={{width}}>
-                    {items}
+                    {horizontal ? <Row>{items}</Row> : items}
                 </div>
                 <div style={{display: 'inline-block', verticalAlign: 'bottom', paddingBottom: '8px'}}>
                     {clearIcon}
