@@ -422,6 +422,9 @@ class SemiDataTable extends Component {
                 </div>;
         }
 
+        console.log('this.load', this.load);
+        console.log('rows.length', rows.length);
+
         return (
             <div className="dt-wrap">
                 <div className="dt-header-wrap">
@@ -508,8 +511,8 @@ class SemiDataTable extends Component {
                                         )
                                     })}
                                 </TableRow>
-                            )) : <TableRow><TableRowColumn style={{textAlign: 'center'}}>{this.load ? `No data` :
-                                <Loading inline/>}</TableRowColumn></TableRow>}
+                            )) : <TableRow><TableRowColumn style={{textAlign: 'center'}}>{/*this.load ? `No data` :
+                                <Loading inline/>*/ `No data`}</TableRowColumn></TableRow>}
                         </TableBody>
                     </Table>
                 </Paper>
